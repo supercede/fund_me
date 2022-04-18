@@ -11,13 +11,12 @@ contract FundMe {
     AggregatorV3Interface internal priceFeed;
     address public owner;
     address[] public funders;
+    mapping(address => uint256) public fundersMap;
 
     constructor(address _priceFeed) public {
         priceFeed = AggregatorV3Interface(_priceFeed);
         owner = msg.sender;
     }
-
-    mapping(address => uint256) public fundersMap;
 
     function fund () public payable {
         // Require a minimum of 10 dollars
@@ -41,6 +40,16 @@ contract FundMe {
 
         // 1 ETH = 10**18 Wei, convert
         return uint256(answer) * (uint256(10)**(18 - decimalPlaces));
+    }
+
+    function getEntranceFee() public view returns (uint256) {
+        // minimumUSD
+        uint256 minimumUSD = 10 * 10**18;
+        uint256 price = getPrice();
+        uint256 precision = 1 * 10**18;
+        // return (minimumUSD * precision) / price;
+        // fixed a rounding error by adding one!
+        return ((minimumUSD * precision) / price) + 1;
     }
  
     function getConversionRate(uint256 ethInWei) public view returns (uint256) {
